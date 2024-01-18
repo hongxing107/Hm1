@@ -1,0 +1,350 @@
+---
+title: "Urban Analytics, HW 1"
+author:
+- Hongxing Du
+- Group Member 2
+date: 'Due: 11:59PM, Jan 29th, 2024'
+output:
+  html_document:
+    code_folding: show
+    highlight: haddock
+    number_sections: yes
+    theme: lumen
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: '4'
+  word_document:
+    toc: yes
+    toc_depth: '4'
+urlcolor: blue
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=8, fig.height=4)
+options(scipen = 0, digits = 3)  # controls base R output
+# check if you have ISLR package, if not, install it
+if(!require('pacman')) {install.packages('pacman')}
+pacman::p_load(tidyverse, dplyr, ggplot2, lubridate, sf, mapview)
+```
+
+
+\pagebreak
+
+> **Before you start, create an Rproject for HW1 as always.**
+
+# Overview
+
+This is a fast-paced course that covers a lot of material. There will be a large number of references. You may need to do your own research to fill in the gaps between lectures and homework/projects. It is impossible to learn data science without getting your hands dirty. Please budget your time evenly. A last-minute work ethic will not work for this course. 
+
+Homework in this course is different from your usual homework assignment as a typical student. Most of the time, they are built over real case studies.  While you will be applying methods covered in lectures, you will also find that extra teaching materials appear here.  The focus will be always on the goals of the study, the usefulness of the data gathered, and the limitations in any conclusions you may draw. Always try to challenge your data analysis in a critical way. Frequently, there are no unique solutions. 
+
+Some case studies in each homework can be listed as your data science projects (e.g. on your CV) where you see fit. 
+
+
+## Objectives 
+
+- Get familiar with `R-studio` and `RMarkdown`
+- Hands-on R 
+- Learn data science essentials 
+    - gather data
+    - clean data
+    - summarize data 
+    - display data
+    - conclusion
+- Packages
+    - `dplyr`
+    - `ggplot`
+    - `sf`
+    
+**Handy cheat sheets**
+
+* [dplyr](http://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf)
+* [ggplot2](https://github.com/rstudio/cheatsheets/blob/master/data-visualization-2.1.pdf)
+* [Rmarkdown](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)
+* [sf](https://github.com/rstudio/cheatsheets/blob/main/sf.pdf)
+
+
+##  Instructions
+
+- **Homework assignments can be done in a group consisting of up to two members**. Please find your group members as soon as possible and register your group on our Canvas site.
+
+- **All work submitted should be completed in the R Markdown format.** You can find a cheat sheet for R Markdown [here](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf) For those who have never used it before, we urge you to start this homework as soon as possible. 
+
+- **Submit the following files, one submission for each group:**  (1) Rmd file, (2) a compiled HTML or pdf version, and (3) all necessary data files if different from our source data. You may directly edit this .rmd file to add your answers. If you intend to work on the problems separately within your group, compile your answers into one Rmd file before submitting. We encourage you at least to attempt each problem by yourself before working with your teammates. Additionally, ensure that you can 'knit' or compile your Rmd file. It is also likely that you need to configure Rstudio to properly convert files to PDF. [**These instructions**](http://kbroman.org/knitr_knutshell/pages/latex.html#converting-knitrlatex-to-pdf) might be helpful.
+
+- In general, be as concise as possible while giving a fully complete answer to each question. All necessary data sets are available in this homework folder on Canvas. Make sure to document your code with comments (written on separate lines in a code chunk using a hashtag `#` before the comment) so others can follow along. R Markdown is particularly useful because it follows a 'stream of consciousness' approach: as you write code in a code chunk, make sure to explain what you are doing outside of the chunk. 
+
+- Control your the output of each chunk using the `echo=F`, `include=F`, `results='hide` in the header of the chunk. You can set it globally (for all the chunks) using `knitr::opts_chunk$set()` in the first chunk above.
+
+- It is important to let your reader/audience know what you are plotting. Please label your ggplots clearly using `ggtitle()`, `xlab()`, `ylab()`, etc.
+
+- A few good or solicited submissions will be used as sample solutions. When those are released, make sure to compare your answers and understand the solutions.
+
+
+## Review materials
+
+- Study Basic R Tutorial
+- Study Advanced R Tutorial (`dplyr` and `ggplot`)
+- Study Module 1 EDA and Module 2 Spatial data
+
+
+# Case study 1: Citibike: weather affect
+
+At the end of Module 1, we ask whether the weather can be an important factor to understand and predict bike usage. Let's investigate how the weather affects Citibike usage.
+
+## Data acquisition 
+
+The first step is to acquire NYC weather in 2015. We have already scrapped the hourly weather data from Darksky API. The following code demonstrates how the data were scrapped and converted into a data frame. The final weather data is in `NYC_weather_2015.csv`.
+
+```{r, eval = FALSE}
+# key = "obtain your key"
+# darksky_api_key(force = TRUE)
+# key 
+# 
+# unique_dates <- seq(as.Date("2015/01/01"), as.Date("2015/12/31"), "days")
+# 
+# weather_df <- unique_dates %>% 
+#   map(~get_forecast_for(40.766048, -73.977320, .x)) %>% 
+#   map_df("hourly") %>% 
+#   mutate(loc = "Central Park",
+#          date = date(time), 
+#          lat =  as.numeric("40.766048"), 
+#          long = as.numeric("-73.977320")) %>% 
+# filter(time >= "2015-01-01 00:00:00") %>%
+# select(time:icon, precipIntensity, temperature, humidity, windSpeed) 
+
+# write.csv(weather_df, "NYC_weather_2015.csv")
+```
+
+## Data preparation  
+
+### Understand and clean the data
+
+a) Read `data/NYC_weather_2015.csv` into R.
+
+```{r}
+# write your code here
+# make sure to hide unnecessary outputs using results='hide'
+# and to hide unnecessary outputs using echo=F
+
+weather <- read.csv("data/NYC_weather_2015.csv")
+names(weather)
+str(weather)
+summary(weather)
+```
+
+
+b) Set the variable natures properly, specifically convert `time` as `POSIXct`, `summary` and `icon` as `factor`s.
+
+```{r}
+weather <- weather %>% mutate(time = mdy_hm(time))
+
+# your code here
+###################
+weather <- weather %>% 
+  mutate(time =  as.POSIXct(weather$time, format = "%m/%d/%Y %H:%M") )
+```
+
+
+c) Any missing values?
+
+d) Do we have all the hourly weather? If not, which days are missing or which days have missing hours? (Hints: use `month()` and `day()` in `lubridate` package to get the month and day from `time` and then use  `unique()` to first check if we have all 356 days. To check whether we have all 24 hours for every day, use `group_by()` and `summarize()` to calculate the number of observations by each day. Use `filter()` to see whether we have 24 observations for each day.)
+
+```{r}
+# your code here
+```
+
+
+### A quick look into the data
+
+a) How many types of weather (`summary`) are there in this data? (Hints: use `unique()`.)
+
+```{r}
+# your code here
+```
+
+b) The `icon` refers to the icon in the iOS weather app. What is the correspondence between `icon` and `summary`? (Hint: use `group_by()` and `summarise()`.)
+
+```{r}
+# your code here
+```
+
+c) Create a new variable `weather` by grouping some levels in `icon` together: "clear-night" and "clear-day" into "clear", "partly-cloudy-night" and "partly-cloudy-day"  into "cloudy", i.e., `weather` has  6 categories/conditions: "clear", "cloudy", "snow", "sleet", "rain", and "fog". Remember to first convert `icon` into character so that we can add more levels.
+
+```{r}
+weather$weather <- as.character(weather$icon)
+weather$weather[weather$weather %in% c("clear-night", "clear-day")] <- "clear"
+
+# your code here
+```
+
+d) How many days are there for each `weather` condition in 2015?
+
+```{r}
+# your code here
+```
+
+
+### Merging Citi bike data with weather data
+
+Next we need to merge the bike data `data/citibike_2015.csv` with the weather data by hours. Let's first read in the bike data and convert the variables into appropriate formats.
+
+```{r}
+bike <- read.csv("data/citibike_2015.csv")
+bike <- bike %>% mutate(usertype = factor(usertype), 
+                        gender = factor(gender),
+                        starttime_standard = ymd_hms(starttime_standard),
+                        stoptime_standard = ymd_hms(stoptime_standard))
+```
+
+The following chunk creates a `starttime_hour` variable to get the starting hour for each trip. Use `left_join()` to join `bike` and `weather` data by hours.
+
+```{r}
+bike <- bike %>% mutate(starttime_hour = floor_date(starttime_standard, unit = "hour"))
+```
+
+## Weather effect
+
+Now we are ready to investigate the relationship between weather condition and bike usage.
+
+a) Calculate the average hourly rentals by weather conditions and show a corresponding barplot (Hints: average hourly rentals = total number of trips/total number of hours by each weather condition.)
+Is there evidence that people are less likely to rent bikes during bad weather? Summarize your findings using less than 3 sentences.
+
+
+```{r}
+# # Uncomment the following code if needed
+#
+# # calculate the total number of trip by each weather condition
+# weather_n_trip <- bike %>%
+#   group_by(weather) %>%
+#   summarise(n_trip = n()) 
+# 
+# # calculate the total number of hours of each weather condition
+# weather_n <- weather %>%
+#   group_by(weather) %>%
+#   summarise(n_weather = n()) 
+# 
+# # merge the two
+# weather_n_trip <- left_join(weather_n_trip, weather_n, by = "weather")
+# # calculate the average hourly rentals by weather conditions
+# weather_n_trip <- weather_n_trip %>% mutate(avg_hourly_rental = n_trip / n_weather)
+#   
+# 
+# # use geom_bar(stat = "identity") to plot a barchat
+```
+
+b) What about the trip duration under different weather conditions? Provide summary statistics and a boxplot to show whether there exist patterns in trip duration (`duration_m`) under different weather conditions. Briefly summarize your findings.
+
+```{r}
+# your code here
+```
+
+
+
+## Trend by the hour of the day
+
+a) As we see in class, the two rush-hour periods account for most of the trips. And we have also observed that the weather condition affects the likelihood of renting bikes. How does the weather condition affect the likelihood of renting bikes, especially during rush hours? Show the average hourly rentals by hour of the day and by weather condition. 
+
+
+```{r}
+# your code here
+```
+
+b) We show in class that the usage patterns between weekdays and weekends vary a lot. Do people react to weather conditions differently between weekdays and weekends? Show the average hourly rentals by the hour of the day and by weather conditions between weekdays and weekends (using `facet_wrap()`) Briefly summarize your findings.
+
+```{r}
+# your code here
+```
+
+
+## Temperature
+
+a) We observe that there are more bike trips during warmer months. Show the average hourly rentals by different temperatures. (Hint: use `cut()` function to bin temperature and then calculate the average hourly rentals by different temperature bins.)
+
+
+```{r}
+# bike <- bike %>%
+#   mutate(temp_group = cut(temperature, breaks = seq(0, 110, 10))) 
+# 
+# weather <- weather %>%
+#   mutate(temp_group = cut(temperature, breaks = seq(0, 110, 10))) 
+
+# your code here
+```
+
+b) Do people ride longer trips when the temperature is higher? Use a scatter plot to show the relationship between `duration_m` and `temperature`. You can further impose a regression line to support your argument using `geom_smooth(method = lm)`.
+
+```{r}
+# your code here
+```
+
+
+
+# Case study 2: Citibike: proximity to subway stations
+
+At the end of Module 1, we also ask whether proximity to public transportation can be an important factor to predict bike usage. Let's investigate how the proximity to subway stations affects the total number of trips.
+
+## Data preparation
+
+We obtain the geographical information (shapefiles) of subway stations from [NYC Open Data](https://data.cityofnewyork.us/Transportation/Subway-Stations/arq3-7z49).
+We use `read_sf()` to read the shapefile data with the WGS84 coordinate reference system.
+
+```{r}
+subway <- read_sf("data/nyc_subway/DOITT_SUBWAY_STATION_04JAN2017.shp") %>%
+  st_transform(crs = 4326)
+```
+
+Similar to what we did in class, let's calculate the total number of trips by each station and convert it into an `sf` object.
+
+```{r}
+trips_by_station <- bike %>%
+  group_by(station = start.station.id) %>%
+  summarise(lat = as.numeric(start.station.latitude[1]),
+            long = as.numeric(start.station.longitude[1]),
+            station = start.station.name[1],
+            num_trip = n())
+
+trips_by_station_sf <- st_as_sf(trips_by_station, 
+                                coords = c("long", "lat"), 
+                                crs = 4326) 
+```
+
+
+## Visualisation using `mapview()`
+
+Plot the subway stations and Citi bike stations using `mapview()`. Color the Citi bike stations by the total number of trips (`num_trip`) and color the subways stations red. Briefly summarize your findings.
+
+```{r}
+# your code here
+```
+
+## Distance to the nearest station
+
+a) Calculate the distance to the closest subway stations for each bike station. (Hints: use `st_nearest_feature()` and `st_distance()`.)
+
+```{r}
+# your code here
+```
+
+b) Is there any evidence that if a bike station is closer to the subway station, more trips are starting from that station? Use a scatter plot to support your answer.
+
+```{r}
+# your code here
+```
+
+## Number of stations within 200 meters
+
+Another proxy to measure the proximity to subway stations is the total number of stations within some distance. Calculate the number of subway stations within 200m for each bike station. (Hints: use `st_buffer()` to create a buffer for each station and then use `st_join` to join the buffered bike station with the subway stations.) Can we also conclude that if a bike station is close to more subway stations, there will be more trips starting from that station?
+
+```{r}
+# your code here
+```
+
+# Discussion
+
+In this homework, we explored how weather and the proximity to subway stations affect Citi bike usage. What other possible factors do you think may affect Citibike usage? Write down your plan to explore these factors, starting from data acquisition (using an official data source or conducting a survey), EDA to the final conclusion. 
